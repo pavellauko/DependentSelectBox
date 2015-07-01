@@ -13,7 +13,6 @@ use LogicException;
 use Nette\NotSupportedException;
 use Nette\Forms\Container as FormContainer;
 
-// \Nette\Forms\FormContainer::extensionMethod("addDependentSelectBox", "DependentSelectBox\DependentSelectBox::formAddDependentSelectBox");
 
 class DependentSelectBox extends SelectBox {
 
@@ -61,9 +60,7 @@ class DependentSelectBox extends SelectBox {
 	 */
 	public function __construct($label, $parents, $dataCallback) {
 		parent::__construct($label, null, null);
-		if(!(is_callable($dataCallback)))
-			throw new InvalidArgumentException("Given callback is not callable !");
-		$this->dataCallback = $dataCallback;
+		$this->dataCallback = new \Nette\Callback($dataCallback);
 		if(!is_array($parents))
 			$parents = ($parents === null) ? array() : array($parents);
 		$this->parents = $parents;
@@ -175,11 +172,9 @@ class DependentSelectBox extends SelectBox {
 	 * @return DependentSelectBox  provides a fluent interface
 	 */
 	public function addOnSubmitCallback($callback, $parameter = null, $_ = null) {
-		if(!is_callable($callback))
-			throw new InvalidArgumentException("Given callback is not callable !");
 		$params = func_get_args();
 		unset($params[0]);
-		$this->onSubmit[] = array($callback, $params);
+		$this->onSubmit[] = array(new \Nette\Callback($callback), $params);
 		return $this;
 	}
 
@@ -207,8 +202,10 @@ class DependentSelectBox extends SelectBox {
 	public function submitButtonHandler($button) {
 		$form = $button->getForm();
 
-		foreach($this->onSubmit as $onSubmitItem)
-			call_user_func_array($onSubmitItem[0], $onSubmitItem[1]);
+		foreach($this->onSubmit as $onSubmitItem) {
+			list($callback, $params) = $onSubmitItem;
+			$callback->invokeArgs($params);
+		}
 
 		if($this->hasAnyParentEmptyValue())
 			return;
@@ -269,8 +266,7 @@ class DependentSelectBox extends SelectBox {
 						throw new InvalidArgumentException("When using 'autoSelectRootFirstItem = true', parent must be instance of SelectBox !");
 					$items = $parent->getItems();
 					if(!empty($items)) {
-						if($parent->areKeysUsed())
-							$items = array_keys($items);
+						$items = array_keys($items);
 						$parent->setValue(reset($items));
 					}
 				}
@@ -309,7 +305,7 @@ class DependentSelectBox extends SelectBox {
 	 * @param Form $form Form with values
 	 */
 	protected function setItemsFromCallback($form) {
-		$data = call_user_func($this->dataCallback, $form, $this);
+		$data = $this->dataCallback->invoke($form, $this);
 		if(!is_array($data))
 			throw new InvalidArgumentException("Data must be array !");
 		$this->setItems($data);
@@ -346,7 +342,7 @@ class DependentSelectBox extends SelectBox {
 		$this->isDisabled = true;
 		if($this->getControlPrototype()->class == null)
 			$this->getControlPrototype()->class = "";
-		$this->getControlPrototype()->class(self::$disabledHtmlClass);
+		$this->getControlPrototype()->addClass(self::$disabledHtmlClass);
 		if($this->disabledValue === null) {
 			$this->setValue(null, false);
 			$this->setItems(array());
@@ -394,23 +390,12 @@ class DependentSelectBox extends SelectBox {
 		$this->setValue($key, false);
 	}
 
-
-	/**
-	 * @deprecated Alias for Container_prototype_addDependentSelectBox
-	 */
-	public static function formAddDependentSelectBox($_this, $name, $label, $parents, $dataCallback) {
-		return self::Container_prototype_addDependentSelectBox($_this, $name, $label, $parents, $dataCallback);
-	}
-
 	public static function Container_prototype_addDependentSelectBox(FormContainer $obj, $name, $label, $parents, $dataCallback) {
 		return $obj[$name] = new DependentSelectBox($label, $parents, $dataCallback);
 	}
 
 	public static function register($methodName = "addDependentSelectBox") {
-		if(NETTE_PACKAGE == 'PHP 5.2')
-			FormContainer::extensionMethod("FormContainer::$methodName", array("DependentSelectBox", "Container_prototype_addDependentSelectBox"));
-		else
-			FormContainer::extensionMethod($methodName, "DependentSelectBox\DependentSelectBox::Container_prototype_addDependentSelectBox");
+		FormContainer::extensionMethod($methodName, "DependentSelectBox\DependentSelectBox::Container_prototype_addDependentSelectBox");
 	}
 
 // </editor-fold>

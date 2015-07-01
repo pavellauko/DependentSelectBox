@@ -1,16 +1,21 @@
 {
-	"name": "pavellauko/dependent-select-box",
-	"description": "Author is Daniel Robenek. Nette component selectbox whose condition depends on another. Values ​​are updated either Ajax or without JS using a SubmitButton.",
-	"keywords": ["javascript", "forms", "nette", "selectbox"],
+	"name": "foowie/dependentselectbox",
+	"type": "library",
+	"description": "Selectbox whose options are depended on another selectbox. Library for Nette Framework",
+	"keywords": ["nette", "selectbox"],
 	"homepage": "http://addons.nette.org/cs/dependentselectbox",
-	"license": "MIT",
+	"license": ["BSD-3-Clause", "MIT"],
 	"authors": [
-		{
-			"name": "Pavel Lauko",
-			"email": "pavel.lauko@vanillaweb.cz"
-		}
+	{
+		"name": "Daniel Robenek"
+	}
 	],
 	"require": {
 		"nette/nette": "*"
+	},
+	"autoload": {
+		"psr-0": {
+			"DependentSelectBox": "src/"
+		}
 	}
 }
