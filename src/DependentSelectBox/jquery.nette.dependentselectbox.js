@@ -28,10 +28,12 @@ jQuery.extend({
 			$(document).on('change', function (e) {
 				if ($(e.target).is('.'+$.dependentselectbox.controlClass)) {
 					// Nette form validation
-					button = document.getElementById((e.currentTarget.activeElement.id) + $.dependentselectbox.buttonSuffix);
+					var res = (e.currentTarget.activeElement.id).split("-");
+					var id = res[0] + res[2] + '-' + res[3];
+					button = document.getElementById(id + $.dependentselectbox.buttonSuffix);
 					button.form["nette-submittedBy"] = button;
 					// ----
-					$('#' + (e.currentTarget.activeElement.id) + $.dependentselectbox.buttonSuffix).ajaxSubmit($.dependentselectbox.jsonResponse);
+					$('#' + id + $.dependentselectbox.buttonSuffix).ajaxSubmit($.dependentselectbox.jsonResponse);
 				}
 			});
 		},
